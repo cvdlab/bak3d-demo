@@ -21,6 +21,10 @@ body {
   padding-top: 25%;
   z-index: 1000;
 }
+
+#start {
+  display: none;
+}
 #start:hover {
   cursor: pointer;
 }

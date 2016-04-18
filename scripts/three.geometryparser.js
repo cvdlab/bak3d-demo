@@ -79,7 +79,7 @@ function get (url, callback) {
   oReq.send(null);
 }
 
-function fillGeometryAttributes (geometry, data) {
+function fillGeometryAttributes (geometry, data, cb) {
   var attrs = data.data.attributes;
   var attrs_keys = Object.keys(attrs);
   seriesEach(attrs_keys, function (attr_name, done) {
@@ -102,10 +102,11 @@ function fillGeometryAttributes (geometry, data) {
       geometry.addAttribute(attr_name, new THREE.BufferAttribute(array, size));
       // console.log(attr_name, attrs[attr_name]);
     });
+    if (cb) cb();
   });
 }
 
-function parseGeometry (data) {
+function parseGeometry (data, onFillGeometry) {
   var geometryLoader = new THREE.JSONLoader();
   var bufferGeometryLoader = new THREE.BufferGeometryLoader();
   var attrs = data.data.attributes;
@@ -330,7 +331,7 @@ function parseGeometry (data) {
     geometry.name = data.name;
   }
 
-  !isFilled && fillGeometryAttributes(geometry, data);
+  !isFilled && fillGeometryAttributes(geometry, data, onFillGeometry);
 
   return geometry;
 
@@ -343,7 +344,7 @@ THREE.ObjectLoader.prototype.parseGeometries = function ( json ) {
   if ( json !== undefined ) {
     for ( var i = 0, l = json.length; i < l; i ++ ) {
       var data = json[ i ];
-      geometries[ data.uuid ] = parseGeometry(data);
+      geometries[ data.uuid ] = parseGeometry(data, onFillGeometry);
     }
   }
 
