@@ -158,7 +158,8 @@ THREE.PointerLockControls = function ( camera ) {
       caster.set(vec, this.getDirection(rays[i]));
 
       // if (octree) {
-        octreeResults = octree.search(caster.ray.origin, caster.ray.far, true, caster.ray.direction);
+        octreeResults = octree.search(caster.ray.origin, caster.ray.far || 100, true, caster.ray.direction);
+        // console.log(caster.ray.origin, caster.ray.far, caster.ray.direction);
         collisions = caster.intersectOctreeObjects(octreeResults);
         collisions.sort(sorting);
       // }

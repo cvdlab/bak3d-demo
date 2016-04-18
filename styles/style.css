@@ -6,6 +6,7 @@ body {
   padding: 0;
   overflow: hidden;
   background-color: #000;
+  font-family: sans-serif;
 }
 
 #progress {
@@ -16,13 +17,37 @@ body {
   text-align: center;
   font-size: 80px;
   line-height: 80px;
-  color: #000;
-  font-family: sans-serif;
-  z-index: 100;
+  color: #fff;
+  z-index: 1000;
 }
 #progress:before {
   content: 'loading '
 }
 #progress:after {
   content: '%'
+}
+
+#overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0,0,0,0.25);
+  z-index: 1000;
+}
+#instructions {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  line-height: 80px;
+  margin: 0;
+  margin-top: -40px;
+  font-size: 80px;
+  text-align: center;
+  color: #fff;
+  z-index: 1000;
+}
+#instructions:hover {
+  cursor: pointer;
 }
