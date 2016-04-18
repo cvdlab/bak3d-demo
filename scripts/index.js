@@ -6,7 +6,8 @@ var octree;
 
 var container = document.getElementById('container');
 var overlay = document.getElementById('overlay');
-var instructions = document.getElementById('instructions');
+var start = document.getElementById('start');
+var notes = document.getElementById('notes');
 
 var on_pointerlock_change = function (event) {
   console.log('pointerlock enabled');
@@ -64,11 +65,18 @@ function stop_propagation (event) {
 }
 
 function init() {
+  var ua = navigator.userAgent;
+  var chrome = /chrome|crios|crmo/i.test(ua);
+  if (!chrome) {
+    notes.style.display = 'block';
+    start.style.display = 'none';
+  }
+
   overlay.addEventListener('mousemove', stop_propagation, false);
 
   document.addEventListener('pointerlockerror', on_pointerlock_error, false);
   document.addEventListener('pointerlockchange', on_pointerlock_change, false);
-  instructions.addEventListener('click', on_click_start);
+  start.addEventListener('click', on_click_start);
 
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
