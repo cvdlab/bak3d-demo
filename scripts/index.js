@@ -4,23 +4,23 @@ var renderer;
 var controls;
 var octree;
 
-function init_pointerlock () {
-  var container = document.body;
+var container = document.getElementById('container');
+var overlay = document.getElementById('overlay');
+var start = document.getElementById('start');
+var notes = document.getElementById('notes');
+var progress = document.getElementById('progress');
 
-  var on_pointerlock_change = function (event) {
-    console.log('first-person enabled');
-  }
-  var on_pointerlock_error = function (event) {
-    console.log('first-person disabled');
-  }
-  var on_click_start = function (event) {
-    container.webkitRequestFullscreen();
-    container.requestPointerLock();
-  }
 
-  document.addEventListener('pointerlockerror', on_pointerlock_error, false);
-  document.addEventListener('pointerlockchange', on_pointerlock_change, false);
-  container.addEventListener('click', on_click_start);
+var on_pointerlock_change = function (event) {
+  console.log('pointerlock enabled');
+  var pointerlock = document.pointerLockElement;
+  overlay.style.display = pointerlock ? 'none' : 'block';
+}
+var on_pointerlock_error = function (event) {
+  console.log('pointerlock disabled');
+}
+var on_click_start = function (event) {
+  container.requestPointerLock();
 }
 
 function generate_envmap (object) {
@@ -62,8 +62,23 @@ function generate_octree (object) {
   });
 }
 
+function stop_propagation (event) {
+  event.stopPropagation();
+}
+
 function init() {
-  init_pointerlock();
+  var ua = navigator.userAgent;
+  var chrome = /chrome|crios|crmo/i.test(ua);
+  if (!chrome) {
+    notes.style.display = 'block';
+    start.style.display = 'none';
+  }
+
+  overlay.addEventListener('mousemove', stop_propagation, false);
+
+  document.addEventListener('pointerlockerror', on_pointerlock_error, false);
+  document.addEventListener('pointerlockchange', on_pointerlock_change, false);
+  start.addEventListener('click', on_click_start);
 
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
@@ -74,7 +89,7 @@ function init() {
   renderer = new THREE.WebGLRenderer();
   renderer.setClearColor(0xffffff);
   renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
+  container.appendChild(renderer.domElement);
 
   load_scene();
 }
@@ -96,8 +111,7 @@ function animate () {
 }
 
 var onFillGeometry; // onFilledGeometries is called by THREE.GeometryLoader each time a geometry is filled
-function progress (json) {
-  var progressEl = document.getElementById('progress');
+function downloadProgress (json) {
   var stats = statistics(json);
   var geometriesProgressValue = 0;
   var imagesProgressValue = 0;
@@ -105,9 +119,11 @@ function progress (json) {
   
   function updateProgress () {
     progressValue = (geometriesProgressValue + imagesProgressValue) / 2;
-    progressEl.textContent = progressValue.toFixed(1);
+    progress.textContent = progressValue.toFixed(1);
     if (progressValue >= 99.9) {
-      // start();
+      // starting
+      progress.style.display = 'none';
+      start.style.display = 'block';
     }
   }
 
@@ -128,7 +144,6 @@ function progress (json) {
         setTimeout(nextUpdate, 500);
       }
     }
-
     nextUpdate();
   }
 
@@ -157,11 +172,10 @@ function load_scene () {
   function on_complete (event) {
     setTimeout(function () {
       var json = JSON.parse(event.target.responseText);
-      progress(json);
+      downloadProgress(json);
       var loader = new THREE.ObjectLoader();
       loader.parse(json, on_parse);
     }, 100);
-    // progress.style.display = 'none';
   }
 
   function on_error (on_error) {
