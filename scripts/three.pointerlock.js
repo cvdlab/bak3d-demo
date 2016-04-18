@@ -142,6 +142,7 @@ THREE.PointerLockControls = function ( camera ) {
     var i;
     var octreeResults;
     var vec;
+    var ray;
     var move;
     var distance = 78;
     var bottomDistance = 15;
@@ -150,22 +151,21 @@ THREE.PointerLockControls = function ( camera ) {
     canMoveBackward = canMoveRight = canMoveForward = canMoveLeft = true;
     isOnObject = false;
 
-    for (i = 0; i < rays.length; i += 1) {
-      vec = new THREE.Vector3();
-      vec.x = yawObject.position.x;
-      vec.y = yawObject.position.y - 145;
-      vec.z = yawObject.position.z;
-      caster.set(vec, this.getDirection(rays[i]));
+    vec = new THREE.Vector3();
+    vec.x = yawObject.position.x;
+    vec.y = yawObject.position.y - 145;
+    vec.z = yawObject.position.z;
 
-      // if (octree) {
-        octreeResults = octree.search(caster.ray.origin, caster.ray.far || 100, true, caster.ray.direction);
-        // console.log(caster.ray.origin, caster.ray.far, caster.ray.direction);
-        collisions = caster.intersectOctreeObjects(octreeResults);
-        collisions.sort(sorting);
-      // }
+    for (i = 0; i < rays.length; i += 1) {
+      ray = rays[i];
+      caster.set(vec, this.getDirection(ray));
+
+      octreeResults = octree.search(caster.ray.origin, caster.ray.far, true, caster.ray.direction);
+      collisions = caster.intersectOctreeObjects(octreeResults);
+      collisions.sort(sorting);
 
       if (collisions.length > 0 && collisions[0].distance <= distance) {
-        switch ( i ) {
+        switch (i) {
           case 0: // backward
             canMoveBackward = false;
             break;
@@ -200,8 +200,8 @@ THREE.PointerLockControls = function ( camera ) {
       }
 
       if (i > 8 && collisions.length > 0) {
-        if(collisions[0].distance <= rampDistance) {
-          switch ( i ) {
+        if (collisions[0].distance <= rampDistance) {
+          switch (i) {
             case 9: // backward
                yawObject.position.y += 2;
                canMoveBackward = true;
