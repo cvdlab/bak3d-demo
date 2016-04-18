@@ -95,8 +95,48 @@ function animate () {
   requestAnimationFrame(animate);
 }
 
+var onFillGeometry; // onFilledGeometries is called by THREE.GeometryLoader each time a geometry is filled
+function progress (json) {
+  var progressEl = document.getElementById('progress');
+  var stats = statistics(json);
+  var geometriesProgressValue = 0;
+  var imagesProgressValue = 0;
+  var progressValue = 0;
+  
+  function updateProgress () {
+    progressValue = (geometriesProgressValue + imagesProgressValue) / 2;
+    progressEl.textContent = progressValue.toFixed(1);
+    if (progressValue >= 99.9) {
+      // start();
+    }
+  }
+
+  function geometriesProgress () {
+    var filledGeometries = 0;
+    onFillGeometry = function onFillGeometry() {
+      filledGeometries++;
+      geometriesProgressValue = filledGeometries / stats.geometries * 100;
+      updateProgress();
+    }
+  }
+
+  function imagesProgress () {
+    function nextUpdate () {
+      imagesProgressValue = THREE.DefaultLoadingManager.itemsLoaded / stats.images * 100;
+      updateProgress();
+      if (THREE.DefaultLoadingManager.itemsLoaded !== stats.images) {
+        setTimeout(nextUpdate, 500);
+      }
+    }
+
+    nextUpdate();
+  }
+
+  geometriesProgress();
+  imagesProgress();
+}
+
 function load_scene () {
-  var progress = document.getElementById('progress');
   console.log('loading...');
 
   var on_parse = function (object) {
@@ -106,21 +146,22 @@ function load_scene () {
     animate();
   };
 
-  function on_progress (event) {
-    if (!event.lengthComputable) {
-      return;
-    }
-    var value = (event.loaded / event.total * 100).toFixed(1);
-    progress.textContent = value;
-  }
+  // function on_progress (event) {
+  //   if (!event.lengthComputable) {
+  //     return;
+  //   }
+  //   var value = (event.loaded / event.total * 100).toFixed(1);
+  //   progress.textContent = value;
+  // }
 
   function on_complete (event) {
     setTimeout(function () {
       var json = JSON.parse(event.target.responseText);
+      progress(json);
       var loader = new THREE.ObjectLoader();
       loader.parse(json, on_parse);
     }, 100);
-    progress.style.display = 'none';
+    // progress.style.display = 'none';
   }
 
   function on_error (on_error) {
@@ -132,7 +173,7 @@ function load_scene () {
   }
 
   var req = new XMLHttpRequest();
-  req.addEventListener('progress', on_progress);
+  // req.addEventListener('progress', on_progress);
   req.addEventListener('load', on_complete);
   req.addEventListener('error', on_error);
   req.addEventListener('abort', on_abort);
@@ -142,6 +183,14 @@ function load_scene () {
   req.send();
 };
 
+function statistics (json) {
+  return {
+    geometries: json.geometries.length,
+    images: json.images.length
+  };
+};
+
+THREE.DefaultLoadingManager = new THREE.CounterLoadingManager();
 init();
 
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
