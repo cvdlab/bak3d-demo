@@ -49,7 +49,7 @@ function generate_envmap (object) {
 function generate_octree (object) {
   octree = new THREE.Octree({
     radius: 1,
-    undeferred: false,
+    undeferred: true,
     depthMax: Infinity,
     objectsThreshold: 1,
     overlapPct: 0.15
